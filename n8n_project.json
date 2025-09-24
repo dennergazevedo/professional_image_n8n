@@ -1,0 +1,368 @@
+{
+  "name": "Foto Profissional",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        0
+      ],
+      "id": "2250615b-a6d0-4bae-875a-d5449fd15a84",
+      "name": "Telegram Trigger",
+      "webhookId": "556395ad-c2a9-4231-8091-315dfbda4a03",
+      "credentials": {
+        "telegramApi": {
+          "id": "O42lMrPyj6O6YA9y",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "adcbb73b-7898-4630-9d9e-a24b145e0927",
+              "name": "file_id",
+              "value": "={{ $json.message.photo[2].file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "95d9d88a-2838-475e-a02e-aaa23f395d57",
+              "name": "bot_id",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "0c8b1e81-0b7f-4599-9baa-21b9cac82d41",
+              "name": "first_name",
+              "value": "={{ $json.message.from.first_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        0
+      ],
+      "id": "50071e45-f57a-4ca2-bfd2-ae656fe87a9e",
+      "name": "Telegram Data"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $json.bot_id }}/getFile?file_id={{ $json.file_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "6a519044-66cd-44cc-badb-e63c5efaddc6",
+      "name": "[GET] Image Path"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c52ddc91-fee5-4e2d-958a-5a7789c50e3f",
+              "name": "file_id",
+              "value": "={{ $('Telegram Data').item.json.file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b2e96fdc-21fa-43bb-8b81-74d6421420fd",
+              "name": "bot_id",
+              "value": "={{ $('Telegram Data').item.json.bot_id }}",
+              "type": "string"
+            },
+            {
+              "id": "d1274bb1-7f4a-48e8-ba42-8c2810a840bd",
+              "name": "first_name",
+              "value": "={{ $('Telegram Data').item.json.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "778ca198-b164-4562-9399-019df4b93f1c",
+              "name": "result.file_path",
+              "value": "={{ $json.result.file_path }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        0
+      ],
+      "id": "7142a6e4-f01e-40d4-97dc-60e27d27598d",
+      "name": "Image Data"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot{{ $json.bot_id }}/{{ $json.result.file_path }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "92e41060-595a-4b38-8df0-b78bfa50914d",
+      "name": "[GET] Image File"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        0
+      ],
+      "id": "ad2741a3-fd23-4ee6-8141-a7a7467408ae",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "candidates[0].content.parts[0].inlineData.data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        0
+      ],
+      "id": "3d059c45-5db9-422c-aa11-6bb8efb85ca2",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1888,
+        0
+      ],
+      "id": "d4952c5d-f59a-4043-9196-d14ff72de269",
+      "name": "Send a photo message",
+      "webhookId": "e6447dc1-a3e9-44a1-a280-a594cdabf09f",
+      "credentials": {
+        "telegramApi": {
+          "id": "O42lMrPyj6O6YA9y",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "9d6266fb-6085-4871-9eb0-f86905d16f3a"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        0
+      ],
+      "id": "4ff7f499-3e23-4dff-be69-975ddaa71258",
+      "name": "É imagem?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-goog-api-key",
+              "value": ""
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"contents\": [\n      {\n        \"parts\": [\n          {\n            \"text\": \"Altere a minha roupa para um terno e o ambiente para um escritório com iluminaçao natural durante a tarde\"\n          },\n          {\n            \"inlineData\": {\n              \"mimeType\": \"image/jpeg\",\n              \"data\": \"{{ $json.data }}\"\n            }\n          }\n        ]\n      }\n    ]\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "4e801f6d-6246-49d6-8b21-4a34bef89706",
+      "name": "[POST] Generate Image"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Telegram Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Data": {
+      "main": [
+        [
+          {
+            "node": "É imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[GET] Image Path": {
+      "main": [
+        [
+          {
+            "node": "Image Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Data": {
+      "main": [
+        [
+          {
+            "node": "[GET] Image File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[GET] Image File": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "[POST] Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É imagem?": {
+      "main": [
+        [
+          {
+            "node": "[GET] Image Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[POST] Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "49db3a50-dee1-4eae-b7dd-e0644ea042ff",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eca6c544900719bcbbea39a84a59afd6b9c369d3d8cf15c68fb4389957dbd7b5"
+  },
+  "id": "qL8xEu7wO8915IpT",
+  "tags": []
+}
